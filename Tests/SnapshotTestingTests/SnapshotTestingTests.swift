@@ -450,30 +450,37 @@ final class SnapshotTestingTests: XCTestCase {
       assertSnapshot(
         matching: viewController, as: .image(on: .iPadPro12_9(.portrait)), named: "ipad-pro-12-9-alternative")
 
-      [
-        "extra-small": UIContentSizeCategory.extraSmall,
-        "small": .small,
-        "medium": .medium,
-        "large": .large,
-        "extra-large": .extraLarge,
-        "extra-extra-large": .extraExtraLarge,
-        "extra-extra-extra-large": .extraExtraExtraLarge,
-        "accessibility-medium": .accessibilityMedium,
-        "accessibility-large": .accessibilityLarge,
-        "accessibility-extra-large": .accessibilityExtraLarge,
-        "accessibility-extra-extra-large": .accessibilityExtraExtraLarge,
-        "accessibility-extra-extra-extra-large": .accessibilityExtraExtraExtraLarge,
-        ].forEach { name, contentSize in
+      allContentSizes.forEach { name, contentSize in
           assertSnapshot(
             matching: viewController,
             as: .image(on: .iPhoneSe, traits: .init(preferredContentSizeCategory: contentSize)),
             named: "iphone-se-\(name)"
           )
       }
+
       #elseif os(tvOS)
       assertSnapshot(
         matching: viewController, as: .image(on: .tv), named: "tv")
       #endif
+    }
+    #endif
+  }
+
+  func testTraitsWithView() {
+    #if os(iOS)
+    if #available(iOS 11.0, *) {
+      let label = UILabel(frame: .zero)
+      label.font = .preferredFont(forTextStyle: .title1)
+      label.adjustsFontForContentSizeCategory = true
+      label.text = "Blob Jr."
+
+      allContentSizes.forEach { name, contentSize in
+        assertSnapshot(
+          matching: label,
+          as: .image(traits: .init(preferredContentSizeCategory: contentSize)),
+          named: "label-\(name)"
+        )
+      }
     }
     #endif
   }
@@ -672,6 +679,24 @@ final class SnapshotTestingTests: XCTestCase {
   }
 }
 
+#if os(iOS)
+private let allContentSizes =
+  [
+    "extra-small": UIContentSizeCategory.extraSmall,
+    "small": .small,
+    "medium": .medium,
+    "large": .large,
+    "extra-large": .extraLarge,
+    "extra-extra-large": .extraExtraLarge,
+    "extra-extra-extra-large": .extraExtraExtraLarge,
+    "accessibility-medium": .accessibilityMedium,
+    "accessibility-large": .accessibilityLarge,
+    "accessibility-extra-large": .accessibilityExtraLarge,
+    "accessibility-extra-extra-large": .accessibilityExtraExtraLarge,
+    "accessibility-extra-extra-extra-large": .accessibilityExtraExtraExtraLarge,
+]
+#endif
+
 #if os(Linux)
 extension SnapshotTestingTests {
   static var allTests : [(String, (SnapshotTestingTests) -> () throws -> Void)] {
@@ -689,6 +714,7 @@ extension SnapshotTestingTests {
       ("testSKView", testSKView),
       ("testTableViewController", testTableViewController),
       ("testTraits", testTraits),
+      ("testTraitsWithView", testTraitsWithView),
       ("testTraitsEmbeddedInTabNavigation", testTraitsEmbeddedInTabNavigation),
       ("testUIView", testUIView),
       ("testURLRequest", testURLRequest),
